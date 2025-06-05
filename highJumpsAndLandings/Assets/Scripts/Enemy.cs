@@ -11,6 +11,8 @@ public class Enemy : MonoBehaviour
     }
     [SerializeField] private VulnerableHitBox[] vulnerableHitBoxes;
 
+    public int teamInt = -1;
+
     /// <summary>
     /// hitColider can be passed as null
     /// </summary>
