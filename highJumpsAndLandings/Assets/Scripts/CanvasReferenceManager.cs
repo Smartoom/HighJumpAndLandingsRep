@@ -10,6 +10,7 @@ public class CanvasReferenceManager : MonoBehaviour
     public TMP_Text healthText;
     public Image healthFill;
     public Image healthBackgroundImage;
+    public CanvasGroup healthBackgroundPainCanvasGroup;
     // CROSSHAIRS
     public Transform plusCrosshair;
     public RectTransform[] plusCrosshairBars;

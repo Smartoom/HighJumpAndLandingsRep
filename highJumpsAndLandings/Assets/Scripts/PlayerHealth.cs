@@ -10,10 +10,16 @@ public class PlayerHealth : MonoBehaviour
     [Header("Health UI Color")]
     [SerializeField] private Color lowHealthUIColor;
     [SerializeField] private Color normalHealthUIColor;
+    [SerializeField] private float healthGradientMinFrequency;
+    [SerializeField] private float healthGradientMinHealthRatio;
+    [SerializeField] private float healthGradientMaxFrequency;
+    [SerializeField] private float healthGradientMaxHealthRatio;
+    [SerializeField] private float healthGradientColorIntensityMax = 80;
+    [SerializeField] private float healthGradientColorIntensityMin = 62;
     [Header("Vignette Effect")]
     [SerializeField] private Color lowHealthVignetteColor;
     [SerializeField] private Color normalHealthVignetteColor;
-    [SerializeField] private float healthColorChangeSpeed;
+    [SerializeField] private float vignetteColorChangeSpeed;
     [SerializeField] private float lowHealthVignetteIntensity;
     [SerializeField] private float fullHealthVignetteIntensity;
     [SerializeField] private float healthIntensityChangeSpeed;
@@ -56,19 +62,50 @@ public class PlayerHealth : MonoBehaviour
         {
             RestartGame();
         }
-        Color healthUIColor = Color.Lerp(lowHealthUIColor, normalHealthUIColor, ((float)health / maxHealth));
+
+        ChangeHealthHUD();
+    }
+
+    private void ChangeHealthHUD()
+    {
+        float healthRatio = (float)health / maxHealth;
+
+        Color healthUIColor = Color.Lerp(lowHealthUIColor, normalHealthUIColor, healthRatio);
         CanvasReferenceManager.instance.healthText.color = healthUIColor;
         CanvasReferenceManager.instance.healthFill.color = healthUIColor;
 
         CanvasReferenceManager.instance.healthText.text = health.ToString();
-        CanvasReferenceManager.instance.healthFill.fillAmount = (float)health / maxHealth;
+        CanvasReferenceManager.instance.healthFill.fillAmount = healthRatio;
 
-        float healthVignetteIntensity = Mathf.Lerp(lowHealthVignetteIntensity, fullHealthVignetteIntensity, ((float)health / maxHealth));
+        float healthVignetteIntensity = Mathf.Lerp(lowHealthVignetteIntensity, fullHealthVignetteIntensity, (healthRatio));
         float imidiateVignetteIntensity = Mathf.MoveTowards(vignette.intensity.value, healthVignetteIntensity, healthIntensityChangeSpeed * Time.deltaTime);
         vignette.intensity.Override(imidiateVignetteIntensity);
 
-        Color healthVignetteColor = Color.Lerp(lowHealthVignetteColor, normalHealthVignetteColor, ((float)health / maxHealth));
-        Color imidiateVignetteColor = Color.Lerp(vignette.color.value, lowHealthVignetteColor, healthColorChangeSpeed * Time.deltaTime);
+        Color healthVignetteColor = Color.Lerp(lowHealthVignetteColor, normalHealthVignetteColor, (healthRatio));
+        Color imidiateVignetteColor = Color.Lerp(vignette.color.value, lowHealthVignetteColor, vignetteColorChangeSpeed * Time.deltaTime);
         vignette.color.Override(imidiateVignetteColor);
+
+        float throbbFrequency;
+        if (health >= maxHealth * healthGradientMaxHealthRatio)
+        {
+            throbbFrequency = healthGradientMinFrequency;
+        }
+        else if (health > healthGradientMinHealthRatio * maxHealth)
+        {
+            throbbFrequency = Mathf.Lerp(healthGradientMinFrequency, healthGradientMaxFrequency, 1 - healthRatio);
+        }
+        else
+        {
+            throbbFrequency = healthGradientMaxFrequency;
+        }
+        float amplitude = (healthGradientColorIntensityMax - healthGradientColorIntensityMin) * 0.5f;
+        float throbbing = Mathf.Sin(Time.time * throbbFrequency) * amplitude;
+        CanvasReferenceManager.instance.healthBackgroundPainCanvasGroup.alpha = throbbing * (1 - healthRatio) + healthRatio;
+    }
+
+    [ContextMenu("Remove 10 helth")]
+    private void Remove10HealthContextFunction()
+    {
+        TakeDamage(10);
     }
 }
