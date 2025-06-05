@@ -13,7 +13,7 @@ public class CanvasReferenceManager : MonoBehaviour
     public CanvasGroup healthBackgroundPainCanvasGroup;
     // CROSSHAIRS
     public Transform plusCrosshair;
-    public RectTransform[] plusCrosshairBars;
+    //public RectTransform[] plusCrosshairBars;
     public Transform xCrosshair;
     public Transform circleCrosshair;
 

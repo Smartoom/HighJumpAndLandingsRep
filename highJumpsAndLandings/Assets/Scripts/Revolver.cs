@@ -5,16 +5,17 @@ public class Revolver : MonoBehaviour
 {
     [SerializeField] private float shotsPerMinute;// fire rate
     [Range(0, 1.5f)]
-    /*[SerializeField] */private float timeSinceLastShot = 10;
+    /*[SerializeField] */
+    private float timeSinceLastShot = 10;
     [SerializeField] private int damage = 4;
     [SerializeField] private int bullets = 9999;
     //private int maxBullets;
     [SerializeField] private LayerMask shootableMask;
-    [Header("Crosshair")]
-    [SerializeField] private float normalOffset;
-    [SerializeField] private float increasedOffset;
-    [SerializeField] private float decreasedOffset;
-    [SerializeField] AnimationCurve crosshairOffsetCurve;
+    /*    [Header("Crosshair")]
+        [SerializeField] private float normalOffset;
+        [SerializeField] private float increasedOffset;
+        [SerializeField] private float decreasedOffset;
+        [SerializeField] AnimationCurve crosshairOffsetCurve;*/
     [Header("References")]
     [SerializeField] private ParticleSystem muzzleFlash;
     [SerializeField] private GameObject impactParticles;
@@ -38,12 +39,12 @@ public class Revolver : MonoBehaviour
             Shoot();
         }
 
-        // Crosshair
-        float crosshairOffset = crosshairOffsetCurve.Evaluate(timeSinceLastShot);
-        for (int i = 0; i < CanvasReferenceManager.instance.plusCrosshairBars.Length; i++)
-        {
-            CanvasReferenceManager.instance.plusCrosshairBars[i].localPosition = Vector3.right * crosshairOffset;
-        }
+        /*        // Crosshair
+                float crosshairOffset = crosshairOffsetCurve.Evaluate(timeSinceLastShot);
+                for (int i = 0; i < CanvasReferenceManager.instance.plusCrosshairBars.Length; i++)
+                {
+                    CanvasReferenceManager.instance.plusCrosshairBars[i].localPosition = Vector3.right * crosshairOffset;
+                }*/
 
         //debug
         timeSinceDeletingPos += Time.deltaTime;
@@ -60,11 +61,13 @@ public class Revolver : MonoBehaviour
     {
         timeSinceLastShot = 0;
         bullets--;
-        muzzleFlash.Play();
+        if (muzzleFlash)
+            muzzleFlash.Play();
 
         if (Physics.Raycast(Camera.position, Camera.forward, out RaycastHit hit, 999, shootableMask))
         {
-            Instantiate(impactParticles, hit.point, Quaternion.LookRotation(hit.normal));
+            if (impactParticles)
+                Instantiate(impactParticles, hit.point, Quaternion.LookRotation(hit.normal));
 
             Enemy enemy = hit.collider.GetComponentInParent<Enemy>();
             if (enemy != null)
@@ -83,10 +86,10 @@ public class Revolver : MonoBehaviour
             Gizmos.DrawWireSphere(pos, 0.25f);
         }
     }
-    public AnimationCurve GetCrosshairOffsetCurve()
-    {
-        return crosshairOffsetCurve;
-    }
+    /*    public AnimationCurve GetCrosshairOffsetCurve()
+        {
+            return crosshairOffsetCurve;
+        }*/
     public float GetTimeSinceLastShot()
     {
         return timeSinceLastShot;

@@ -68,11 +68,13 @@ public class AutomaticRifle : MonoBehaviour
         turnsToComplete++;
         timeSinceLastShot = 0;
         bullets--;
-        muzzleFlash.Play();
+        if (muzzleFlash)
+            muzzleFlash.Play();
 
         if (Physics.Raycast(Camera.position, Camera.forward, out RaycastHit hit, 999, shootableMask))
         {
-            Instantiate(impactParticles, hit.point, Quaternion.LookRotation(hit.normal));
+            if (impactParticles)
+                Instantiate(impactParticles, hit.point, Quaternion.LookRotation(hit.normal));
 
             Enemy enemy = hit.collider.GetComponentInParent<Enemy>();
             if (enemy != null)
