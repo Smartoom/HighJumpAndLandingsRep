@@ -3,6 +3,20 @@ using UnityEngine;
 
 public class GenericSoldierDudeEnemyScript : Enemy
 {
+    [Header("State Management")]
+    [SerializeField] private SoldierState soldierState;
+    private enum SoldierState
+    {
+        Idle,//only spotting(temporary. replace with somethign about team stuff)
+        ShootInSpot,//chance to be ShootInSpot or ShootWhileRunning
+        ShootWhileRunning,
+        RunForCover,//when arrived.go to reload
+        Reloading
+    }
+    [Header("Comanding")]
+    private bool cammander;
+    [Header("Remembering")]
+    private Vector3 rememberedChosenThreatPosition;
     [Header("Spotting")]
     [SerializeField] private float fieldOfViewAngle;//sight angle
     [SerializeField] private float viewDistance;//sight angle
@@ -11,20 +25,27 @@ public class GenericSoldierDudeEnemyScript : Enemy
     [SerializeField] private float rotateTowardThreatSpeed;// fire rate
     [SerializeField] private GameObject bullet;
     [SerializeField] private Transform bulletSpawnPosition;
-    private float timeSinceLastShot;
-    private int bulletsLoaded;
-    private bool reloading = false;
     [SerializeField] private int magazineSize;
-    [SerializeField] private Animator animator;
+    private int bulletsLoaded;
+    private float timeSinceLastShot;
+    private bool reloading = false;
+    [Header("Running")]
+    [SerializeField] private float speed;
     [Header("Blood Particles")]
     [SerializeField] private ParticleSystem bloodParticles;
     [SerializeField] private Transform bloodParticleCollisionPlane;
     [SerializeField] private LayerMask groundLayerMask;
+    [Header("Blood Particles")]
+    [SerializeField] private Animator animator;
 
     private void Start()
     {
         BattleManager.instance.teamedCharactersInScene.Add(this);
         bulletsLoaded = magazineSize;
+
+        possibleThreats = new();
+        allies = new();
+        threatsInVision = new();
     }
     private bool SameTeamAs(int otherTeamInt) => otherTeamInt == teamInt;
 
@@ -32,32 +53,10 @@ public class GenericSoldierDudeEnemyScript : Enemy
     {
         timeSinceLastShot += Time.deltaTime;
 
-        List<TeamedCharacter> possibleThreats = new();
-        List<TeamedCharacter> allies = new();
-        foreach (TeamedCharacter soldier in BattleManager.instance.teamedCharactersInScene)
-        {
-            if (soldier == this)
-                continue;
-
-            if (SameTeamAs(soldier.teamInt))
-                allies.Add(soldier);
-            else
-                possibleThreats.Add(soldier);
-        }
-        List<TeamedCharacter> threatsInVision = new();
-        for (int i = 0; i < possibleThreats.Count; i++)
-        {
-            Vector3 directionToThreat = possibleThreats[i].transform.position - transform.position;
-            float angleToThreat = Vector3.Angle(transform.forward, directionToThreat);
-            bool threatIsInVisionCone = angleToThreat <= fieldOfViewAngle;
-            if (!threatIsInVisionCone)
-                continue;
-            bool lineToThreatUninterrupted = Physics.Raycast(transform.position, directionToThreat, out RaycastHit visionHit, viewDistance);
-            bool lineCollisionIsTeamedCharacter = visionHit.collider.transform.parent != null && (visionHit.collider.transform.parent.CompareTag("Player") || visionHit.collider.transform.parent.CompareTag("Enemy"));
-            bool playerIsInSight = lineToThreatUninterrupted && lineCollisionIsTeamedCharacter;
-            if (playerIsInSight)
-                threatsInVision.Add(possibleThreats[i]);
-        }
+    }
+    private void FixedUpdate()
+    {
+        IdentifySoldiers();
 
         if (threatsInVision.Count > 0)
         {
@@ -83,6 +82,42 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 Reload();
             }
 
+        }
+    }
+    List<TeamedCharacter> possibleThreats;
+    List<TeamedCharacter> allies;
+    List<TeamedCharacter> threatsInVision;
+
+    private void IdentifySoldiers()
+    {
+        possibleThreats.Clear();
+        allies.Clear();
+        threatsInVision.Clear();
+
+        //identify enemies and allies (including possibly player)
+        foreach (TeamedCharacter soldier in BattleManager.instance.teamedCharactersInScene)
+        {
+            if (soldier == this)
+                continue;
+
+            if (SameTeamAs(soldier.teamInt))
+                allies.Add(soldier);
+            else
+                possibleThreats.Add(soldier);
+        }
+        //identify which threats you can see
+        for (int i = 0; i < possibleThreats.Count; i++)
+        {
+            Vector3 directionToThreat = possibleThreats[i].transform.position - transform.position;
+            float angleToThreat = Vector3.Angle(transform.forward, directionToThreat);
+            bool threatIsInVisionCone = angleToThreat <= fieldOfViewAngle;
+            if (!threatIsInVisionCone)
+                continue;
+            bool lineToThreatUninterrupted = Physics.Raycast(transform.position, directionToThreat, out RaycastHit visionHit, viewDistance);
+            bool lineCollisionIsTeamedCharacter = visionHit.collider.transform.parent != null && (visionHit.collider.transform.parent.CompareTag("Player") || visionHit.collider.transform.parent.CompareTag("Enemy"));
+            bool playerIsInSight = lineToThreatUninterrupted && lineCollisionIsTeamedCharacter;
+            if (playerIsInSight)
+                threatsInVision.Add(possibleThreats[i]);
         }
     }
     private void Reload()
