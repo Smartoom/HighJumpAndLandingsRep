@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy : TeamedCharacter
 {
     [SerializeField] protected int health = 20;
     [System.Serializable]
@@ -10,8 +10,6 @@ public class Enemy : MonoBehaviour
         public float damageMultiplier = 1;
     }
     [SerializeField] private VulnerableHitBox[] vulnerableHitBoxes;
-
-    public int teamInt = -1;
 
     /// <summary>
     /// hitColider can be passed as null
@@ -30,6 +28,13 @@ public class Enemy : MonoBehaviour
         {
             Die();
         }
+    }
+    /// <summary>
+    /// hit point meant for shot knockback. this method should be overriden by children to use ragdolls n stuff.
+    /// </summary>
+    public virtual void TakeDamage(Collider hitColider, int damage, Vector3 hitPoint)
+    {
+        TakeDamage(hitColider, damage);
     }
 
     public virtual void Die()

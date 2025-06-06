@@ -4,26 +4,50 @@ public class EnemyBullet : MonoBehaviour
 {
     [SerializeField] private float speed;
     [SerializeField] private int damage;
-    [SerializeField] private float radius;
     [SerializeField] private ParticleSystem collisionParticles;
-    [SerializeField] private float bulletDeathDistance;//might switch to just timed death instead.
-
+    [SerializeField] private float bulletDeathTime;//might switch to just timed death instead.
+    //[SerializeField] private Rigidbody rb;
+    private void Start()
+    {
+        Destroy(gameObject, bulletDeathTime);
+    }
+    Vector3 lastPos;
     private void FixedUpdate()
     {
-        transform.position += speed * Time.fixedDeltaTime * transform.forward;
-        Collider[] colliders = Physics.OverlapSphere(transform.position, radius);
-        if (colliders.Length > 0)
+        float distance = speed * Time.fixedDeltaTime;
+        transform.position += distance * transform.forward;
+        bool hitSomething = Physics.Raycast(lastPos, transform.forward, out RaycastHit hit, distance);
+        if (hitSomething)
         {
-            if (colliders[0].transform.parent != null && colliders[0].transform.parent.CompareTag("Player"))//might cause a bug. since only the first contact is used. too lazy to do anythign
+            if (hit.transform.CompareTag("Player"))
             {
-                colliders[0].transform.GetComponentInParent<PlayerHealth>().TakeDamage(damage);
+                hit.transform.GetComponent<PlayerHealth>().TakeDamage(damage);
+            }
+            else if (hit.transform.CompareTag("Enemy"))
+            {
+                hit.transform.GetComponent<Enemy>().TakeDamage(hit.collider, damage, hit.point);
             }
             collisionParticles.transform.parent = null;
             collisionParticles.Play();
             Destroy(gameObject);
             return;
         }
-        if (transform.position.sqrMagnitude > bulletDeathDistance * bulletDeathDistance)
-            Destroy(gameObject);
+
+        lastPos = transform.position;
     }
+
+/*    private void OnCollisionEnter(Collision collision)
+    {
+        collisionParticles.transform.parent = null;
+        collisionParticles.Play();
+        if (collision.transform.parent.CompareTag("Player"))
+        {
+            collision.transform.GetComponentInParent<PlayerHealth>().TakeDamage(damage);
+        }
+        else if (collision.transform.parent.CompareTag("Enemy"))
+        {
+            collision.transform.GetComponentInParent<Enemy>().TakeDamage(collision.collider, damage, collision.contacts[0].point);
+        }
+        Destroy(gameObject);
+    }*/
 }

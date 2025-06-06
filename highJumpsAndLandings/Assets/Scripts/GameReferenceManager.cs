@@ -4,6 +4,7 @@ public class GameReferenceManager : MonoBehaviour
 {
     public static GameReferenceManager instance;
     public Transform player;
+    public PlayerTeamHandling playerTeamHandling;
 
     private void Awake()
     {

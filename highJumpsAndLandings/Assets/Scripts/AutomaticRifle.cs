@@ -78,7 +78,7 @@ public class AutomaticRifle : MonoBehaviour
 
             Enemy enemy = hit.collider.GetComponentInParent<Enemy>();
             if (enemy != null)
-                enemy.TakeDamage(hit.collider, damage);
+                enemy.TakeDamage(hit.collider, damage, hit.point);
         }
         debugShotPosition.Add(hit.point);
     }

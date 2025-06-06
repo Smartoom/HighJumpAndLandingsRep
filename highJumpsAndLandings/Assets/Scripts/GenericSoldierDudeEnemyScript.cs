@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GenericSoldierDudeEnemyScript : Enemy
@@ -15,31 +16,68 @@ public class GenericSoldierDudeEnemyScript : Enemy
     [SerializeField] private Transform bloodParticleCollisionPlane;
     [SerializeField] private LayerMask groundLayerMask;
 
+    private void Start()
+    {
+        BattleManager.instance.teamedCharactersInScene.Add(this);
+    }
+    private bool SameTeamAs(int otherTeamInt) => otherTeamInt == teamInt;
+
     private void Update()
     {
         timeSinceLastShot += Time.deltaTime;
 
-        Vector3 directionToPlayer = GameReferenceManager.instance.player.position - transform.position;
-        float angleToplayer = Vector3.Angle(transform.forward, directionToPlayer);
-        bool playerIsInVisionCone = angleToplayer <= fieldOfViewAngle;
-
-        if (playerIsInVisionCone)
+        List<TeamedCharacter> possibleThreats = new();
+        List<TeamedCharacter> allies = new();
+        foreach (TeamedCharacter soldier in BattleManager.instance.teamedCharactersInScene)
         {
-            bool playerIsInSight = Physics.Raycast(transform.position, directionToPlayer, out RaycastHit visionHit, viewDistance) && visionHit.collider.transform.parent != null && visionHit.collider.transform.parent.CompareTag("Player");
+            if (soldier == this)
+                continue;
+
+            if (SameTeamAs(soldier.teamInt))
+                allies.Add(soldier);
+            else
+                possibleThreats.Add(soldier);
+        }
+        List<TeamedCharacter> threatsInVision = new();
+        for (int i = 0; i < possibleThreats.Count; i++)
+        {
+            Vector3 directionToThreat = possibleThreats[i].transform.position - transform.position;
+            float angleToThreat = Vector3.Angle(transform.forward, directionToThreat);
+            bool threatIsInVisionCone = angleToThreat <= fieldOfViewAngle;
+            if (!threatIsInVisionCone)
+                continue;
+            bool lineToThreatUninterrupted = Physics.Raycast(transform.position, directionToThreat, out RaycastHit visionHit, viewDistance);
+            bool lineCollisionIsTeamedCharacter = visionHit.collider.transform.parent != null && (visionHit.collider.transform.parent.CompareTag("Player") || visionHit.collider.transform.parent.CompareTag("Enemy"));
+            bool playerIsInSight = lineToThreatUninterrupted && lineCollisionIsTeamedCharacter;
             if (playerIsInSight)
-            {
-                //go to face him
-                //once in distance
-                if (timeSinceLastShot >= 60 / shotsPerMinute)
-                {
-                    GameObject instBullet = Instantiate(bullet, bulletSpawnPosition.position, Quaternion.identity);
-                    instBullet.transform.LookAt(GameReferenceManager.instance.player.position);
-                    timeSinceLastShot = 0;
-                }
-            }
+                threatsInVision.Add(possibleThreats[i]);
         }
 
+        if (threatsInVision.Count > 0)
+        {
+            TeamedCharacter chosenCharacter;
+            if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))
+            {
+                chosenCharacter = GameReferenceManager.instance.playerTeamHandling;
+            }
+            else
+                chosenCharacter = threatsInVision[0];
+
+            //go to face one
+            //once in distance
+            if (CanShoot())
+            {
+                GameObject instBullet = Instantiate(bullet, bulletSpawnPosition.position, Quaternion.identity);
+                //Vector3 direction = new Vector3(chosenCharacter.transform.position.x, transform.position.y, chosenCharacter.transform.position.z) - instBullet.transform.position;
+                //transform.rotation = Quaternion.LookRotation(direction,Vector3.up);
+                instBullet.transform.LookAt(chosenCharacter.transform);//replace
+                timeSinceLastShot = 0;
+            }
+
+        }
     }
+
+    private bool CanShoot() => timeSinceLastShot >= 60 / shotsPerMinute;
 
     public override void Die()
     {
@@ -52,6 +90,13 @@ public class GenericSoldierDudeEnemyScript : Enemy
         else
             bloodParticleCollisionPlane.position = Vector3.down * 9999;
 
+        BattleManager.instance.teamedCharactersInScene.Remove(this);//erm
         Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (BattleManager.instance.teamedCharactersInScene.Contains(this))
+            BattleManager.instance.teamedCharactersInScene.Remove(this);
     }
 }

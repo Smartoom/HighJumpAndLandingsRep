@@ -1,12 +1,15 @@
 using UnityEngine;
 
-public class PlayerTeamHandling : MonoBehaviour
+public class PlayerTeamHandling : TeamedCharacter
 {
     [SerializeField] private KeyCode joinSoldierTeam;
     [SerializeField] private Transform cam;
     [SerializeField] private LayerMask soldierLayers;
-    public int teamInt = 0;
 
+    private void Start()
+    {
+        BattleManager.instance.teamedCharactersInScene.Add(this);
+    }
     void Update()
     {
         PickingTeams();
@@ -30,5 +33,9 @@ public class PlayerTeamHandling : MonoBehaviour
             return;
 
         teamInt = teamToSwitchTo;
+    }
+    private void OnDestroy()
+    {
+        BattleManager.instance.teamedCharactersInScene.Remove(this);
     }
 }
