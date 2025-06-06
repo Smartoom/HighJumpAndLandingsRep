@@ -8,9 +8,14 @@ public class GenericSoldierDudeEnemyScript : Enemy
     [SerializeField] private float viewDistance;//sight angle
     [Header("Attack")]
     [SerializeField] private float shotsPerMinute;// fire rate
+    [SerializeField] private float rotateTowardThreatSpeed;// fire rate
     [SerializeField] private GameObject bullet;
     [SerializeField] private Transform bulletSpawnPosition;
     private float timeSinceLastShot;
+    private int bulletsLoaded;
+    private bool reloading = false;
+    [SerializeField] private int magazineSize;
+    [SerializeField] private Animator animator;
     [Header("Blood Particles")]
     [SerializeField] private ParticleSystem bloodParticles;
     [SerializeField] private Transform bloodParticleCollisionPlane;
@@ -19,6 +24,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
     private void Start()
     {
         BattleManager.instance.teamedCharactersInScene.Add(this);
+        bulletsLoaded = magazineSize;
     }
     private bool SameTeamAs(int otherTeamInt) => otherTeamInt == teamInt;
 
@@ -63,21 +69,34 @@ public class GenericSoldierDudeEnemyScript : Enemy
             else
                 chosenCharacter = threatsInVision[0];
 
-            //go to face one
-            //once in distance
+            Vector3 direction = new Vector3(chosenCharacter.transform.position.x, transform.position.y, chosenCharacter.transform.position.z) - transform.position;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction, Vector3.up), rotateTowardThreatSpeed * Time.deltaTime);
             if (CanShoot())
             {
                 GameObject instBullet = Instantiate(bullet, bulletSpawnPosition.position, Quaternion.identity);
-                //Vector3 direction = new Vector3(chosenCharacter.transform.position.x, transform.position.y, chosenCharacter.transform.position.z) - instBullet.transform.position;
-                //transform.rotation = Quaternion.LookRotation(direction,Vector3.up);
                 instBullet.transform.LookAt(chosenCharacter.transform);//replace
                 timeSinceLastShot = 0;
+                bulletsLoaded--;
+            }
+            else if (bulletsLoaded <= 0)
+            {
+                Reload();
             }
 
         }
     }
+    private void Reload()
+    {
+        reloading = true;
+        animator.SetTrigger("Reload");
+    }
+    public void ReplaceMagazineAnimationEvent()
+    {
+        bulletsLoaded = magazineSize;
+        reloading = false;
+    }
 
-    private bool CanShoot() => timeSinceLastShot >= 60 / shotsPerMinute;
+    private bool CanShoot() => timeSinceLastShot >= 60 / shotsPerMinute && bulletsLoaded > 0 && !reloading;
 
     public override void Die()
     {

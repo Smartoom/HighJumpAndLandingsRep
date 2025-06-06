@@ -35,19 +35,4 @@ public class EnemyBullet : MonoBehaviour
 
         lastPos = transform.position;
     }
-
-/*    private void OnCollisionEnter(Collision collision)
-    {
-        collisionParticles.transform.parent = null;
-        collisionParticles.Play();
-        if (collision.transform.parent.CompareTag("Player"))
-        {
-            collision.transform.GetComponentInParent<PlayerHealth>().TakeDamage(damage);
-        }
-        else if (collision.transform.parent.CompareTag("Enemy"))
-        {
-            collision.transform.GetComponentInParent<Enemy>().TakeDamage(collision.collider, damage, collision.contacts[0].point);
-        }
-        Destroy(gameObject);
-    }*/
 }
