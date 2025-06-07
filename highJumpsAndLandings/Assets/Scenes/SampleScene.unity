@@ -8745,20 +8745,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   teams:
   - teamName: Red
-    identificationAccesoryMaterial: {fileID: 0}
-    teamIcon: {fileID: 0}
+    identificationAccesoryMaterial: {fileID: 2100000, guid: 102c9306cdad9a54e998b3b0a6247999, type: 2}
+    teamIcon: {fileID: 21300000, guid: f54adf6568882da4b85693f3a90467a2, type: 3}
   - teamName: Blue
-    identificationAccesoryMaterial: {fileID: 0}
-    teamIcon: {fileID: 0}
-  - teamName: Orange
-    identificationAccesoryMaterial: {fileID: 0}
-    teamIcon: {fileID: 0}
+    identificationAccesoryMaterial: {fileID: 2100000, guid: 6adfdd35ac020944cbecbc6a6adee02f, type: 2}
+    teamIcon: {fileID: 21300000, guid: a4dd9c0c2c2c4844a8279717bf8057a3, type: 3}
+  - teamName: Yellow
+    identificationAccesoryMaterial: {fileID: 2100000, guid: c388f11a4827db647a4b8fd523cde2f7, type: 2}
+    teamIcon: {fileID: 21300000, guid: 580a0b2a5eda12041ac98276589cdafa, type: 3}
   - teamName: Purple
-    identificationAccesoryMaterial: {fileID: 0}
-    teamIcon: {fileID: 0}
-  - teamName: DarkPurpur
-    identificationAccesoryMaterial: {fileID: 0}
-    teamIcon: {fileID: 0}
+    identificationAccesoryMaterial: {fileID: 2100000, guid: e21b35426a056354f9184886f168bda8, type: 2}
+    teamIcon: {fileID: 21300000, guid: d48c05d340fcc9e44a2ccc6239a04888, type: 3}
+  - teamName: Green
+    identificationAccesoryMaterial: {fileID: 2100000, guid: d2f0f259d9708cb459bf362686511f56, type: 2}
+    teamIcon: {fileID: 21300000, guid: 61cc432e3276b7d42b448e801419d74c, type: 3}
 --- !u!1 &778647451
 GameObject:
   m_ObjectHideFlags: 0
@@ -15462,11 +15462,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1250740321}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!95 &1262672117 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 2532082224408943485, guid: 31105b844b798eb478cf809e9a23edd6, type: 3}
-  m_PrefabInstance: {fileID: 8499772148607607803}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1281877823
 GameObject:
   m_ObjectHideFlags: 0
@@ -25485,18 +25480,6 @@ PrefabInstance:
     - target: {fileID: 2517455489410367472, guid: 31105b844b798eb478cf809e9a23edd6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4830807274025725284, guid: 31105b844b798eb478cf809e9a23edd6, type: 3}
-      propertyPath: speed
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4830807274025725284, guid: 31105b844b798eb478cf809e9a23edd6, type: 3}
-      propertyPath: animator
-      value: 
-      objectReference: {fileID: 1262672117}
-    - target: {fileID: 4830807274025725284, guid: 31105b844b798eb478cf809e9a23edd6, type: 3}
-      propertyPath: magazineSize
-      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
