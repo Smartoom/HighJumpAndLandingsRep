@@ -33,10 +33,12 @@ public class GenericSoldierDudeEnemyScript : Enemy
     private int bulletsLoaded;
     private float timeSinceLastShot;
     private bool reloading = false;
-    [Header("Running")]
-    [SerializeField] private float speed;
+    [Header("Attack while running")]
+    [SerializeField] private float runningDestinationMinimumDistance = 3;
+    [SerializeField] private float runningDestinationMaximumDistance = 7;
     [Header("Hiding")]
     [SerializeField] private int numberOfRandomAttemptsToFindHidingSpot = 10;
+    [SerializeField] private int numberOfRandomAttemptsToFindRunningDestination = 10;
     [SerializeField] private int distAwayHideCheck = 10;
     [Header("Blood Particles")]
     [SerializeField] private ParticleSystem bloodParticles;
@@ -78,6 +80,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
         switch (soldierState)
         {
             case SoldierState.Idle:
+                navMeshAgent.SetDestination(transform.position);
                 IdentifySoldiers();
                 if (threatsInVision.Count > 0)
                 {
@@ -96,11 +99,13 @@ public class GenericSoldierDudeEnemyScript : Enemy
                     }
                     else
                     {
+                        GoToRandomRunningShootingPosition();
                         soldierState = SoldierState.ShootWhileRunning;
                     }
                 }
                 break;
             case SoldierState.ShootInSpot:
+                navMeshAgent.SetDestination(transform.position);
                 if (chosenCharacter == null)//enemy is deleted/dead
                 {
                     Debug.Log("bruh. he died");
@@ -135,6 +140,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 break;
             case SoldierState.ShootWhileRunning:
+
                 if (chosenCharacter == null)//enemy is deleted/dead
                 {
                     Debug.Log("bruh. he died while i was running and shooting");
@@ -205,6 +211,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                     }
                     else
                     {
+                        GoToRandomRunningShootingPosition();
                         soldierState = SoldierState.ShootWhileRunning;
                     }
                 }
@@ -215,6 +222,23 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 break;
         }
     }
+    private void GoToRandomRunningShootingPosition()
+    {
+        Vector3 foundRunningDestination = transform.position;//incase none are found
+        for (int i = 0; i < numberOfRandomAttemptsToFindRunningDestination; i++)
+        {
+            float randAngle = Random.Range(0, Mathf.PI * 2);
+            Vector3 possibleDestination = chosenCharacter.transform.position + new Vector3(Mathf.Cos(randAngle), 0, Mathf.Sin(randAngle)) * Random.Range(runningDestinationMinimumDistance, runningDestinationMaximumDistance);
+            //maybe also check if it is possible to go there with navmesh.
+            if (Physics.Raycast(possibleDestination, chosenCharacter.transform.position - possibleDestination, out RaycastHit runningShootingHit) && runningShootingHit.transform == chosenCharacter.transform)
+            {
+                foundRunningDestination = possibleDestination;
+                break;
+            }
+        }
+        navMeshAgent.SetDestination(foundRunningDestination);
+    }
+
     Vector3[] possibleHidingSpots = new Vector3[0];
     int chosenHidingSpot = 0;//for debugging
     private Vector3 FindCoverPosition(Vector3 threatPos) // :( :)
@@ -231,7 +255,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 return possibleHidingSpots[i];
             }
         }
-        return transform.position;
+        return transform.position;//maybe instead store the position of the place where they last hid. #todo
     }
     private void OnDrawGizmosSelected()
     {
