@@ -8,7 +8,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
     [SerializeField] private SoldierState soldierState;
     private enum SoldierState
     {
-        Idle,//only spotting(temporary. replace with somethign about team stuff)
+        CommandOrObide,
         ShootInSpot,//chance to be ShootInSpot or ShootWhileRunning
         ShootWhileRunning,
         RunForCover,//when arrived.go to reload
@@ -17,6 +17,10 @@ public class GenericSoldierDudeEnemyScript : Enemy
         Holding// random time of deciding to seek out.
     }
     [Header("Comanding")]
+    [SerializeField] private MeshRenderer commanderIndicatorMesh;
+    [SerializeField] private int numberOfRandomAttemptsToFindCommandDestinationSpot = 10;
+    [SerializeField] private int distanceCloseEnoughToDestinationPoint = 3;
+    [SerializeField] private int maxRandomRangeOfDestination = 20;
     private bool isCommander;
     [Header("Remembering")]
     private Vector3 rememberedChosenThreatPosition;
@@ -76,13 +80,58 @@ public class GenericSoldierDudeEnemyScript : Enemy
         animator.SetBool("Running", navMeshAgent.remainingDistance != 0);
     }
     TeamedCharacter chosenCharacter;
+    private Vector3 commandGivenDestination;
+    private void SetCommandGivenDestination(Vector3 newTeamDestination)
+    {
+        commandGivenDestination = newTeamDestination;
+        if (soldierState == SoldierState.CommandOrObide)
+        {
+            navMeshAgent.SetDestination(commandGivenDestination);
+        }
+    }
     private void FixedUpdate()
     {
         switch (soldierState)
         {
-            case SoldierState.Idle:
-                navMeshAgent.SetDestination(transform.position);
+            case SoldierState.CommandOrObide:
                 IdentifySoldiers();
+                //Find a valid random position to go to.
+                //with allies, run close to that point.
+                //once there do it again.
+                if (isCommander)
+                {
+                    if (navMeshAgent.remainingDistance < distanceCloseEnoughToDestinationPoint)
+                    {
+                        //update
+                        Vector3 foundDestination = transform.position;
+                        for (int i = 0; i < numberOfRandomAttemptsToFindCommandDestinationSpot; i++)
+                        {
+                            float randAngle = Random.Range(0, Mathf.PI * 2);
+                            Vector3 possibleDestination = transform.position + new Vector3(Mathf.Cos(randAngle), 0, Mathf.Sin(randAngle)) * Random.Range(0, maxRandomRangeOfDestination);
+                            //maybe also check if it is possible to go there with navmesh.
+                            if (Physics.Raycast(possibleDestination, Vector3.down))
+                            {
+                                foundDestination = possibleDestination;
+                                break;
+                            }
+                        }
+                        navMeshAgent.SetDestination(foundDestination);
+                    }
+                    //maybe hvae this on an interval
+
+                    foreach (TeamedCharacter allyCharacter in allies)
+                    {
+                        if (allyCharacter is PlayerTeamHandling)
+                            continue;
+                        //allies excluding player
+                        GenericSoldierDudeEnemyScript ally = (GenericSoldierDudeEnemyScript)allyCharacter;
+                        //assuming only one commander exists
+                        if (ally.isCommander)
+                            Debug.Log("GAAH! only one commander is supposed to exist!");
+                        //tell ally where to go
+                        ally.SetCommandGivenDestination(transform.position);// #idk what to do w this bruh. gotta design this stuff.
+                    }
+                }
                 if (threatsInVision.Count > 0)
                 {
                     if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))//player in vision and is enemy.
@@ -110,7 +159,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 if (chosenCharacter == null)//enemy is deleted/dead
                 {
                     Debug.Log("bruh. he died");
-                    soldierState = SoldierState.Idle;//idk. maybe replace with run for cover or smth
+                    soldierState = SoldierState.CommandOrObide;//idk. maybe replace with run for cover or smth
                     break;
                 }
                 //still have vision of threat?
@@ -145,7 +194,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 if (chosenCharacter == null)//enemy is deleted/dead
                 {
                     Debug.Log("bruh. he died while i was running and shooting");
-                    soldierState = SoldierState.Idle;//idk. maybe replace with run for cover or smth
+                    soldierState = SoldierState.CommandOrObide;//idk. maybe replace with run for cover or smth
                     break;
                 }
                 //still have vision of threat?
@@ -215,6 +264,11 @@ public class GenericSoldierDudeEnemyScript : Enemy
                         GoToRandomRunningShootingPosition();
                         soldierState = SoldierState.ShootWhileRunning;
                     }
+                }
+                else if (navMeshAgent.remainingDistance == 0)
+                {
+                    Debug.Log("Couldn't find shit here. going back to commander");
+                    soldierState = SoldierState.CommandOrObide;
                 }
                 break;
             case SoldierState.Holding://eh
@@ -302,6 +356,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
             bool threatIsInVisionCone = angleToThreat <= fieldOfViewAngle;
             if (!threatIsInVisionCone)
                 continue;
+            Debug.Log(possibleThreats[i].name + " in cone");
             bool lineToThreatUninterrupted = Physics.Raycast(transform.position, directionToThreat, out RaycastHit visionHit, viewDistance);
             bool lineCollisionIsTeamedCharacter = visionHit.collider.transform.parent != null && (visionHit.collider.transform.parent.CompareTag("Player") || visionHit.collider.transform.parent.CompareTag("Enemy"));
             bool playerIsInSight = lineToThreatUninterrupted && lineCollisionIsTeamedCharacter;
@@ -345,11 +400,12 @@ public class GenericSoldierDudeEnemyScript : Enemy
     public void SetAsCommanderContextMenu()
     {
         isCommander = true;
+        commanderIndicatorMesh.gameObject.SetActive(true);
         //physical turn on
     }
     public override void TakeDamage(Collider hitColider, int damage)
     {
-        if (soldierState == SoldierState.Idle)
+        if (soldierState == SoldierState.CommandOrObide)
         {
             Debug.Log("SOMEONE IS SHOOTING AT ME! i'm running for cover away from my last position");
             navMeshAgent.SetDestination(FindCoverPosition(transform.position));
