@@ -19,13 +19,13 @@ public class EnemyBullet : MonoBehaviour
         bool hitSomething = Physics.Raycast(lastPos, transform.forward, out RaycastHit hit, distance);
         if (hitSomething)
         {
-            if (hit.transform.CompareTag("Player"))
+            if (hit.collider.transform.parent.CompareTag("Player"))
             {
-                hit.transform.GetComponent<PlayerHealth>().TakeDamage(damage);
+                hit.collider.transform.parent.GetComponent<PlayerHealth>().TakeDamage(damage);
             }
-            else if (hit.transform.CompareTag("Enemy"))
+            else if (hit.collider.transform.parent.CompareTag("Enemy"))
             {
-                hit.transform.GetComponent<Enemy>().TakeDamage(hit.collider, damage, hit.point);
+                hit.collider.transform.parent.GetComponent<Enemy>().TakeDamage(hit.collider, damage, hit.point);
             }
             collisionParticles.transform.parent = null;
             collisionParticles.Play();

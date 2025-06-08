@@ -115,7 +115,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 //still have vision of threat?
                 bool hitInThreatDir = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHit, viewDistance);
-                if (hitInThreatDir == false || visionHit.transform != chosenCharacter.transform)
+                if (hitInThreatDir == false || visionHit.collider.transform.parent != chosenCharacter.transform)
                 {
                     Debug.Log("can't see ya. seeking you out.");
                     navMeshAgent.SetDestination(rememberedChosenThreatPosition);
@@ -150,7 +150,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 //still have vision of threat?
                 bool hitInThreatDirRun = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHitRun, viewDistance);
-                if (hitInThreatDirRun == false || visionHitRun.transform != chosenCharacter.transform)
+                if (hitInThreatDirRun == false || visionHitRun.collider.transform.parent != chosenCharacter.transform)
                 {
                     Debug.Log("can't see ya. seeking you out.");
                     navMeshAgent.SetDestination(rememberedChosenThreatPosition);
@@ -231,7 +231,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
             float randAngle = Random.Range(0, Mathf.PI * 2);
             Vector3 possibleDestination = chosenCharacter.transform.position + new Vector3(Mathf.Cos(randAngle), 0, Mathf.Sin(randAngle)) * Random.Range(runningDestinationMinimumDistance, runningDestinationMaximumDistance);
             //maybe also check if it is possible to go there with navmesh.
-            if (Physics.Raycast(possibleDestination, chosenCharacter.transform.position - possibleDestination, out RaycastHit runningShootingHit) && runningShootingHit.transform == chosenCharacter.transform)
+            if (Physics.Raycast(possibleDestination, chosenCharacter.transform.position - possibleDestination, out RaycastHit runningShootingHit) && runningShootingHit.collider.transform.parent == chosenCharacter.transform)
             {
                 foundRunningDestination = possibleDestination;
                 break;
@@ -250,7 +250,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
             float randAngle = Random.Range(0, Mathf.PI * 2);
             possibleHidingSpots[i] = transform.position + new Vector3(Mathf.Cos(randAngle), 0, Mathf.Sin(randAngle)) * distAwayHideCheck;
             //maybe also check if it is possible to go there with navmesh.
-            if (Physics.Raycast(possibleHidingSpots[i], threatPos - possibleHidingSpots[i], out RaycastHit hit) && hit.transform != chosenCharacter.transform)
+            if (Physics.Raycast(possibleHidingSpots[i], threatPos - possibleHidingSpots[i], out RaycastHit hit) && (chosenCharacter == null || hit.collider.transform.parent != chosenCharacter.transform))
             {
                 chosenHidingSpot = i;
                 return possibleHidingSpots[i];
@@ -346,5 +346,15 @@ public class GenericSoldierDudeEnemyScript : Enemy
     {
         isCommander = true;
         //physical turn on
+    }
+    public override void TakeDamage(Collider hitColider, int damage)
+    {
+        if (soldierState == SoldierState.Idle)
+        {
+            Debug.Log("SOMEONE IS SHOOTING AT ME! i'm running for cover away from my last position");
+            navMeshAgent.SetDestination(FindCoverPosition(transform.position));
+            soldierState = SoldierState.RunForCover;//find a spot?
+        }
+        base.TakeDamage(hitColider, damage);
     }
 }

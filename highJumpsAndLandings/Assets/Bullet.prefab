@@ -5026,7 +5026,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 40
-  damage: 15
+  damage: 10
   collisionParticles: {fileID: 8694812913670709891}
   bulletDeathTime: 5
 --- !u!1 &6068891395315184142

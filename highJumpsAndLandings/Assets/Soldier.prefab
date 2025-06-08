@@ -173,7 +173,7 @@ MonoBehaviour:
   fieldOfViewAngle: 80
   viewDistance: 50
   shotsPerMinute: 240
-  rotateTowardThreatSpeed: 90
+  rotateTowardThreatSpeed: 180
   bullet: {fileID: 5867377480820555113, guid: a1b9ec5a890b50044bc9ef942dbad72d, type: 3}
   bulletSpawnPosition: {fileID: 4852537365684046414}
   magazineSize: 15
