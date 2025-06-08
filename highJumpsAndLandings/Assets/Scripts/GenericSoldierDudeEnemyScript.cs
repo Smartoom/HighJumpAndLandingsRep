@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class GenericSoldierDudeEnemyScript : Enemy
 {
@@ -16,9 +17,10 @@ public class GenericSoldierDudeEnemyScript : Enemy
         Holding// random time of deciding to seek out.
     }
     [Header("Comanding")]
-    private bool cammander;
+    private bool isCommander;
     [Header("Remembering")]
     private Vector3 rememberedChosenThreatPosition;
+    private Vector3 positionAtWhichThreatWasSeenBeforeFleeing;// :D
     [Header("Spotting")]
     [SerializeField] private float fieldOfViewAngle;//sight angle
     [SerializeField] private float viewDistance;//sight angle
@@ -33,12 +35,17 @@ public class GenericSoldierDudeEnemyScript : Enemy
     private bool reloading = false;
     [Header("Running")]
     [SerializeField] private float speed;
+    [Header("Hiding")]
+    [SerializeField] private int numberOfRandomAttemptsToFindHidingSpot = 10;
+    [SerializeField] private int distAwayHideCheck = 10;
     [Header("Blood Particles")]
     [SerializeField] private ParticleSystem bloodParticles;
     [SerializeField] private Transform bloodParticleCollisionPlane;
     [SerializeField] private LayerMask groundLayerMask;
-    [Header("Blood Particles")]
+    [Header("Other")]
     [SerializeField] private Animator animator;
+    [SerializeField] private MeshRenderer armEmblemWrap;
+    [SerializeField] private NavMeshAgent navMeshAgent;
 
     private void Start()
     {
@@ -48,6 +55,8 @@ public class GenericSoldierDudeEnemyScript : Enemy
         possibleThreats = new();
         allies = new();
         threatsInVision = new();
+
+        armEmblemWrap.material = TeamManager.instance.teams[teamInt].identificationAccesoryMaterial;
     }
     private bool SameTeamAs(int otherTeamInt) => otherTeamInt == teamInt;
 
@@ -56,11 +65,12 @@ public class GenericSoldierDudeEnemyScript : Enemy
     {
         timeSinceLastShot += Time.deltaTime;
 
-        if (lookAtTransform)
+        if (lookAtTransform)//may cause bugs later
         {
             Vector3 direction = new Vector3(lookAtTransform.position.x, transform.position.y, lookAtTransform.position.z) - transform.position;
             transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction, Vector3.up), rotateTowardThreatSpeed * Time.deltaTime);
         }
+        animator.SetBool("Running", navMeshAgent.remainingDistance != 0);
     }
     TeamedCharacter chosenCharacter;
     private void FixedUpdate()
@@ -71,14 +81,14 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 IdentifySoldiers();
                 if (threatsInVision.Count > 0)
                 {
-                    if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))
+                    if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))//player in vision and is enemy.
                     {
-                        chosenCharacter = GameReferenceManager.instance.playerTeamHandling;
+                        chosenCharacter = GameReferenceManager.instance.playerTeamHandling;//prioritize fighting player
                     }
                     else
-                        chosenCharacter = threatsInVision[0];
+                        chosenCharacter = threatsInVision[0];//if not fight the first soldier in vision
 
-                    if (Random.value > 0.5)//true or false
+                    if (Random.value > 0.5)//random choice
                     {
                         soldierState = SoldierState.ShootInSpot;
                     }
@@ -89,13 +99,27 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 break;
             case SoldierState.ShootInSpot:
+                if (chosenCharacter == null)
+                {
+                    soldierState = SoldierState.Idle;//idk. maybe replace with run for cover or smth
+                    break;
+                }
+                //still have vision of threat?
+                bool hitInThreatDir = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHit, viewDistance);
+                if (hitInThreatDir == false || visionHit.transform != chosenCharacter.transform)
+                {
+                    soldierState = SoldierState.SeekingOut;
+                    break;
+                }
                 lookAtTransform = chosenCharacter.transform;
                 if (!HasBullets())
                 {
+                    navMeshAgent.SetDestination(FindCoverPosition(chosenCharacter.transform.position));
                     soldierState = SoldierState.RunForCover;//find a spot?
+                    positionAtWhichThreatWasSeenBeforeFleeing = transform.position;//for finding enemy after reload
                     break;
                 }
-                if(ShootIntervalPassed())
+                if (ShootIntervalPassed())
                 {
                     GameObject instBullet = Instantiate(bullet, bulletSpawnPosition.position, Quaternion.identity);
                     instBullet.transform.LookAt(chosenCharacter.transform);//replace
@@ -124,34 +148,38 @@ public class GenericSoldierDudeEnemyScript : Enemy
             default:
                 break;
         }
-        if (threatsInVision.Count > 0)
+    }
+    Vector3[] possibleHidingSpots = new Vector3[0];
+    int chosenHidingSpot = 0;//for debugging
+    private Vector3 FindCoverPosition(Vector3 threatPos) // :( :)
+    {
+        possibleHidingSpots = new Vector3[numberOfRandomAttemptsToFindHidingSpot];
+        for (int i = 0; i < numberOfRandomAttemptsToFindHidingSpot; i++)
         {
-            //
- /*           TeamedCharacter chosenCharacter;
-            if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))
+            float randAngle = Random.Range(0, Mathf.PI * 2);
+            possibleHidingSpots[i] = transform.position + new Vector3(Mathf.Cos(randAngle), 0, Mathf.Sin(randAngle)) * distAwayHideCheck;
+            //maybe also check if it is possible to go there with navmesh.
+            if (Physics.Raycast(possibleHidingSpots[i], threatPos - possibleHidingSpots[i], out RaycastHit hit) && hit.transform != chosenCharacter.transform)
             {
-                chosenCharacter = GameReferenceManager.instance.playerTeamHandling;
+                chosenHidingSpot = i;
+                return possibleHidingSpots[i];
             }
-            else
-                chosenCharacter = threatsInVision[0];
-            //
-            lookAtTransform = chosenCharacter.transform;
-            //
-            if (timeSinceLastShot >= 60 / shotsPerMinute && bulletsLoaded > 0 && !reloading)
-            {
-                GameObject instBullet = Instantiate(bullet, bulletSpawnPosition.position, Quaternion.identity);
-                instBullet.transform.LookAt(chosenCharacter.transform);//replace
-                timeSinceLastShot = 0;
-                bulletsLoaded--;
-                //
-            }
-            else if (bulletsLoaded <= 0)
-            {
-                Reload();
-            }*/
-
+        }
+        return transform.position;
+    }
+    private void OnDrawGizmosSelected()
+    {
+        for (int i = 0; i < possibleHidingSpots.Length; i++)
+        {
+            Gizmos.color = Color.red;
+            if (i == chosenHidingSpot)
+                Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(possibleHidingSpots[i], 0.5f);
+            if (chosenCharacter)
+                Gizmos.DrawLine(possibleHidingSpots[i], chosenCharacter.transform.position);
         }
     }
+
     private bool ShootIntervalPassed() => timeSinceLastShot >= 60 / shotsPerMinute;
     private bool HasBullets() => bulletsLoaded > 0;
     List<TeamedCharacter> possibleThreats;
@@ -221,5 +249,11 @@ public class GenericSoldierDudeEnemyScript : Enemy
     {
         if (BattleManager.instance.teamedCharactersInScene.Contains(this))
             BattleManager.instance.teamedCharactersInScene.Remove(this);
+    }
+    [ContextMenu("SetAsCommander")]
+    public void SetAsCommanderContextMenu()
+    {
+        isCommander = true;
+        //physical turn on
     }
 }
