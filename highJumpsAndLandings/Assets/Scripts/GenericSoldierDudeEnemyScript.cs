@@ -20,7 +20,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
     private bool isCommander;
     [Header("Remembering")]
     private Vector3 rememberedChosenThreatPosition;
-    private Vector3 positionAtWhichThreatWasSeenBeforeFleeing;// :D
+    /*    private Vector3 positionAtWhichThreatWasLastSeen;// :D*/
     [Header("Spotting")]
     [SerializeField] private float fieldOfViewAngle;//sight angle
     [SerializeField] private float viewDistance;//sight angle
@@ -88,6 +88,8 @@ public class GenericSoldierDudeEnemyScript : Enemy
                     else
                         chosenCharacter = threatsInVision[0];//if not fight the first soldier in vision
 
+                    rememberedChosenThreatPosition = chosenCharacter.transform.position;
+
                     if (Random.value > 0.5)//random choice
                     {
                         soldierState = SoldierState.ShootInSpot;
@@ -99,8 +101,9 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 break;
             case SoldierState.ShootInSpot:
-                if (chosenCharacter == null)
+                if (chosenCharacter == null)//enemy is deleted/dead
                 {
+                    Debug.Log("bruh. he died");
                     soldierState = SoldierState.Idle;//idk. maybe replace with run for cover or smth
                     break;
                 }
@@ -108,15 +111,19 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 bool hitInThreatDir = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHit, viewDistance);
                 if (hitInThreatDir == false || visionHit.transform != chosenCharacter.transform)
                 {
+                    Debug.Log("can't see ya. seeking you out.");
+                    navMeshAgent.SetDestination(rememberedChosenThreatPosition);
                     soldierState = SoldierState.SeekingOut;
                     break;
                 }
                 lookAtTransform = chosenCharacter.transform;
+                //positionAtWhichThreatWasLastSeen = transform.position;//for finding enemy after reload
+                rememberedChosenThreatPosition = chosenCharacter.transform.position;
                 if (!HasBullets())
                 {
+                    Debug.Log("I need more BOOLETS! run for cover! ...");
                     navMeshAgent.SetDestination(FindCoverPosition(chosenCharacter.transform.position));
                     soldierState = SoldierState.RunForCover;//find a spot?
-                    positionAtWhichThreatWasSeenBeforeFleeing = transform.position;//for finding enemy after reload
                     break;
                 }
                 if (ShootIntervalPassed())
@@ -128,22 +135,81 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 break;
             case SoldierState.ShootWhileRunning:
+                if (chosenCharacter == null)//enemy is deleted/dead
+                {
+                    Debug.Log("bruh. he died while i was running and shooting");
+                    soldierState = SoldierState.Idle;//idk. maybe replace with run for cover or smth
+                    break;
+                }
+                //still have vision of threat?
+                bool hitInThreatDirRun = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHitRun, viewDistance);
+                if (hitInThreatDirRun == false || visionHitRun.transform != chosenCharacter.transform)
+                {
+                    Debug.Log("can't see ya. seeking you out.");
+                    navMeshAgent.SetDestination(rememberedChosenThreatPosition);
+                    soldierState = SoldierState.SeekingOut;
+                    break;
+                }
                 lookAtTransform = chosenCharacter.transform;
+                //positionAtWhichThreatWasLastSeen = transform.position;//for finding enemy after reload
+                rememberedChosenThreatPosition = chosenCharacter.transform.position;
+                if (!HasBullets())
+                {
+                    Debug.Log("I need more BOOLETS! run for cover! ...");
+                    navMeshAgent.SetDestination(FindCoverPosition(chosenCharacter.transform.position));
+                    soldierState = SoldierState.RunForCover;//find a spot?
+                    break;
+                }
+                if (ShootIntervalPassed())
+                {
+                    GameObject instBullet = Instantiate(bullet, bulletSpawnPosition.position, Quaternion.identity);
+                    instBullet.transform.LookAt(chosenCharacter.transform);//replace
+                    timeSinceLastShot = 0;
+                    bulletsLoaded--;
+                }
                 break;
             case SoldierState.RunForCover:
-                //find a spot. or maybe when switching
-                //once there. if no bullets. reload.
-                //if you see an enemy. have a chance to run for cover again.
+                if (navMeshAgent.remainingDistance < 1)
+                {
+                    //once there. if no bullets. reload.
+                    Reload();
+                    Debug.Log("i'm close to cover, time to relaod");
+                    soldierState = SoldierState.Reloading;//maybe make more behaviour. if you care
+                }
+                //if you see an enemy. have a chance to run for cover again. ##maybe do later. todo
                 break;
             case SoldierState.Reloading:
-                if (!HasBullets() && !reloading)
+                if (!reloading)//finisehd reloading
                 {
-                    Reload();
+                    Debug.Log("reloaded, seeking out where i last seen an enemy");
+                    navMeshAgent.SetDestination(rememberedChosenThreatPosition);
+                    soldierState = SoldierState.SeekingOut;//or hold angle. ##todo
                 }
-                else
+                break;
+            case SoldierState.SeekingOut:
+                IdentifySoldiers();
+                if (threatsInVision.Count > 0)
                 {
+                    Debug.Log("I was seeking out an enemy I saw, and now I see an enemy!");
+                    if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))//player in vision and is enemy.
+                    {
+                        chosenCharacter = GameReferenceManager.instance.playerTeamHandling;//prioritize fighting player
+                    }
+                    else
+                        chosenCharacter = threatsInVision[0];//if not fight the first soldier in vision
 
+                    rememberedChosenThreatPosition = chosenCharacter.transform.position;
+                    if (Random.value > 0.5)//random choice
+                    {
+                        soldierState = SoldierState.ShootInSpot;
+                    }
+                    else
+                    {
+                        soldierState = SoldierState.ShootWhileRunning;
+                    }
                 }
+                break;
+            case SoldierState.Holding://eh
                 break;
             default:
                 break;
