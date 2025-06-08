@@ -177,8 +177,10 @@ MonoBehaviour:
   bullet: {fileID: 5867377480820555113, guid: a1b9ec5a890b50044bc9ef942dbad72d, type: 3}
   bulletSpawnPosition: {fileID: 4852537365684046414}
   magazineSize: 15
-  speed: 3
+  runningDestinationMinimumDistance: 3
+  runningDestinationMaximumDistance: 7
   numberOfRandomAttemptsToFindHidingSpot: 10
+  numberOfRandomAttemptsToFindRunningDestination: 10
   distAwayHideCheck: 10
   bloodParticles: {fileID: 4597493886124749243}
   bloodParticleCollisionPlane: {fileID: 251521878804928595}
@@ -220,7 +222,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 6
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120

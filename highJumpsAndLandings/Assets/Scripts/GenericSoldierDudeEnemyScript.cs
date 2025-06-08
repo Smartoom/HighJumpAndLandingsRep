@@ -44,6 +44,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
     [SerializeField] private ParticleSystem bloodParticles;
     [SerializeField] private Transform bloodParticleCollisionPlane;
     [SerializeField] private LayerMask groundLayerMask;
+    //reaction time? #todo
     [Header("Other")]
     [SerializeField] private Animator animator;
     [SerializeField] private MeshRenderer armEmblemWrap;
