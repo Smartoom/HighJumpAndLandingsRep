@@ -31,12 +31,15 @@ public class PlayerRespawnManager : MonoBehaviour
             {
                 timer = 0;
                 wantsToRespawn = false;
-                Instantiate(playerContainerPrefab, Vector3.zero, Quaternion.identity).GetComponentInChildren<PlayerTeamHandling>().SetTeamInt(playerTeamWhenDead);
+                GameObject playerInst = Instantiate(playerContainerPrefab, Vector3.zero, Quaternion.identity);
+                GameReferenceManager.instance.player = playerInst.transform;
+                GameReferenceManager.instance.playerTeamHandling = playerInst.GetComponentInChildren<PlayerTeamHandling>();
+                GameReferenceManager.instance.playerTeamHandling.SetTeamInt(playerTeamWhenDead);
 
                 CanvasReferenceManager.instance.gameHUDScreen.SetActive(true);
                 CanvasReferenceManager.instance.gameOverScreen.SetActive(false);
-
                 respawnCamera.SetActive(false);
+
                 if (playerTeamWhenDead < 0)
                     CanvasReferenceManager.instance.playerTeamImage.sprite = noTeamSprite;
             }
