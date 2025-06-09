@@ -145,10 +145,12 @@ public class GenericSoldierDudeEnemyScript : Enemy
 
                     if (Random.value > 0.5)//random choice
                     {
+                        Debug.Log("I see someone, i'l stand and shoot");
                         soldierState = SoldierState.ShootInSpot;
                     }
                     else
                     {
+                        Debug.Log("I see someone, i'l run and gun");
                         GoToRandomRunningShootingPosition();
                         soldierState = SoldierState.ShootWhileRunning;
                     }
@@ -267,7 +269,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 else if (navMeshAgent.remainingDistance == 0)
                 {
-                    Debug.Log("Couldn't find shit here. going back to commander");
+                    Debug.Log("Couldn't find shit here. going back to commanding or obiding");
                     soldierState = SoldierState.CommandOrObide;
                 }
                 break;
@@ -356,9 +358,11 @@ public class GenericSoldierDudeEnemyScript : Enemy
             bool threatIsInVisionCone = angleToThreat <= fieldOfViewAngle;
             if (!threatIsInVisionCone)
                 continue;
-            Debug.Log(possibleThreats[i].name + " in cone");
+            //Debug.Log(possibleThreats[i].name + " in cone");
             bool lineToThreatUninterrupted = Physics.Raycast(transform.position, directionToThreat, out RaycastHit visionHit, viewDistance);
-            bool lineCollisionIsTeamedCharacter = visionHit.collider.transform.parent != null && (visionHit.collider.transform.parent.CompareTag("Player") || visionHit.collider.transform.parent.CompareTag("Enemy"));
+            if (!lineToThreatUninterrupted)
+                continue;
+            bool lineCollisionIsTeamedCharacter = visionHit.collider.transform.parent != null && (visionHit.collider.transform.parent == possibleThreats[i].transform);
             bool playerIsInSight = lineToThreatUninterrupted && lineCollisionIsTeamedCharacter;
             if (playerIsInSight)
                 threatsInVision.Add(possibleThreats[i]);
@@ -379,6 +383,18 @@ public class GenericSoldierDudeEnemyScript : Enemy
     public override void Die()
     {
         base.Die();
+
+        if (isCommander)
+        {
+            foreach (TeamedCharacter soldier in BattleManager.instance.teamedCharactersInScene)
+            {
+                if (soldier == this)
+                    continue;
+
+                if (SameTeamAs(soldier.teamInt) && soldier is GenericSoldierDudeEnemyScript)
+                    ((GenericSoldierDudeEnemyScript)soldier).isCommander = true;
+            }
+        }
 
         bloodParticles.transform.parent = null;
         bloodParticles.Play();
