@@ -33,9 +33,20 @@ public class PlayerTeamHandling : TeamedCharacter
             return;
 
         teamInt = teamToSwitchTo;
+        if (teamToSwitchTo >= 0)
+        {
+            CanvasReferenceManager.instance.playerTeamImage.sprite = TeamManager.instance.teams[teamInt].teamIcon;
+        }
     }
     private void OnDestroy()
     {
         BattleManager.instance.teamedCharactersInScene.Remove(this);
+    }
+    /// <summary>
+    /// used by spawner of player
+    /// </summary>
+    public void SetTeamInt(int spawnedTeamInt)
+    {
+        SwitchToTeam(spawnedTeamInt);
     }
 }

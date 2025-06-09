@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+[RequireComponent(typeof(PlayerTeamHandling))]
 public class PlayerHealth : MonoBehaviour
 {
     [SerializeField] private int health = 100;
@@ -23,13 +24,12 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private float lowHealthVignetteIntensity;
     [SerializeField] private float fullHealthVignetteIntensity;
     [SerializeField] private float healthIntensityChangeSpeed;
-    [SerializeField] private Volume volume;
+    private Volume volume;
     private Vignette vignette;
-
-    private bool gameOver = false;
 
     private void Start()
     {
+        volume = GameReferenceManager.instance.volume;
         volume.profile.TryGet(out vignette);
     }
 
@@ -45,24 +45,12 @@ public class PlayerHealth : MonoBehaviour
     }
     private void Die()
     {
-        CanvasReferenceManager.instance.gameHUDScreen.SetActive(false);
-        CanvasReferenceManager.instance.gameOverScreen.SetActive(true);
-        gameOver = true;
-        Time.timeScale = 0;
-    }
-    private void RestartGame()
-    {
-        Time.timeScale = 1;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Destroy(transform.parent.gameObject);//assuming the player and the camera are still children of the container.
+        PlayerRespawnManager.instance.StartRespawnTimer(GetComponent<PlayerTeamHandling>().teamInt);
     }
 
     private void Update()
     {
-        if (gameOver && Input.GetKeyDown(KeyCode.Space))
-        {
-            RestartGame();
-        }
-
         ChangeHealthHUD();
     }
 

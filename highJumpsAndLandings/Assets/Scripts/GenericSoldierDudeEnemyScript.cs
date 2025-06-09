@@ -127,7 +127,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                         GenericSoldierDudeEnemyScript ally = (GenericSoldierDudeEnemyScript)allyCharacter;
                         //assuming only one commander exists
                         if (ally.isCommander)
-                            Debug.Log("GAAH! only one commander is supposed to exist!");
+                            //Debug.Log("GAAH! only one commander is supposed to exist!");
                         //tell ally where to go
                         ally.SetCommandGivenDestination(transform.position);// #idk what to do w this bruh. gotta design this stuff.
                     }
@@ -145,12 +145,12 @@ public class GenericSoldierDudeEnemyScript : Enemy
 
                     if (Random.value > 0.5)//random choice
                     {
-                        Debug.Log("I see someone, i'l stand and shoot");
+                        //Debug.Log("I see someone, i'l stand and shoot");
                         soldierState = SoldierState.ShootInSpot;
                     }
                     else
                     {
-                        Debug.Log("I see someone, i'l run and gun");
+                        //Debug.Log("I see someone, i'l run and gun");
                         GoToRandomRunningShootingPosition();
                         soldierState = SoldierState.ShootWhileRunning;
                     }
@@ -160,7 +160,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 navMeshAgent.SetDestination(transform.position);
                 if (chosenCharacter == null)//enemy is deleted/dead
                 {
-                    Debug.Log("bruh. he died");
+                    //Debug.Log("bruh. he died");
                     soldierState = SoldierState.CommandOrObide;//idk. maybe replace with run for cover or smth
                     break;
                 }
@@ -168,7 +168,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 bool hitInThreatDir = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHit, viewDistance);
                 if (hitInThreatDir == false || visionHit.collider.transform.parent != chosenCharacter.transform)
                 {
-                    Debug.Log("can't see ya. seeking you out.");
+                    //Debug.Log("can't see ya. seeking you out.");
                     navMeshAgent.SetDestination(rememberedChosenThreatPosition);
                     soldierState = SoldierState.SeekingOut;
                     break;
@@ -178,7 +178,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 rememberedChosenThreatPosition = chosenCharacter.transform.position;
                 if (!HasBullets())
                 {
-                    Debug.Log("I need more BOOLETS! run for cover! ...");
+                    //Debug.Log("I need more BOOLETS! run for cover! ...");
                     navMeshAgent.SetDestination(FindCoverPosition(chosenCharacter.transform.position));
                     soldierState = SoldierState.RunForCover;//find a spot?
                     break;
@@ -195,7 +195,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
 
                 if (chosenCharacter == null)//enemy is deleted/dead
                 {
-                    Debug.Log("bruh. he died while i was running and shooting");
+                    //Debug.Log("bruh. he died while i was running and shooting");
                     soldierState = SoldierState.CommandOrObide;//idk. maybe replace with run for cover or smth
                     break;
                 }
@@ -203,7 +203,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 bool hitInThreatDirRun = Physics.Raycast(transform.position, chosenCharacter.transform.position - transform.position, out RaycastHit visionHitRun, viewDistance);
                 if (hitInThreatDirRun == false || visionHitRun.collider.transform.parent != chosenCharacter.transform)
                 {
-                    Debug.Log("can't see ya. seeking you out.");
+                    //Debug.Log("can't see ya. seeking you out.");
                     navMeshAgent.SetDestination(rememberedChosenThreatPosition);
                     soldierState = SoldierState.SeekingOut;
                     break;
@@ -213,7 +213,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 rememberedChosenThreatPosition = chosenCharacter.transform.position;
                 if (!HasBullets())
                 {
-                    Debug.Log("I need more BOOLETS! run for cover! ...");
+                    //Debug.Log("I need more BOOLETS! run for cover! ...");
                     navMeshAgent.SetDestination(FindCoverPosition(chosenCharacter.transform.position));
                     soldierState = SoldierState.RunForCover;//find a spot?
                     break;
@@ -231,7 +231,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 {
                     //once there. if no bullets. reload.
                     Reload();
-                    Debug.Log("i'm close to cover, time to relaod");
+                    //Debug.Log("i'm close to cover, time to relaod");
                     soldierState = SoldierState.Reloading;//maybe make more behaviour. if you care
                 }
                 //if you see an enemy. have a chance to run for cover again. ##maybe do later. todo
@@ -239,7 +239,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
             case SoldierState.Reloading:
                 if (!reloading)//finisehd reloading
                 {
-                    Debug.Log("reloaded, seeking out where i last seen an enemy");
+                    //Debug.Log("reloaded, seeking out where i last seen an enemy");
                     navMeshAgent.SetDestination(rememberedChosenThreatPosition);
                     soldierState = SoldierState.SeekingOut;//or hold angle. ##todo
                 }
@@ -248,7 +248,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 IdentifySoldiers();
                 if (threatsInVision.Count > 0)
                 {
-                    Debug.Log("I was seeking out an enemy I saw, and now I see an enemy!");
+                    //Debug.Log("I was seeking out an enemy I saw, and now I see an enemy!");
                     if (threatsInVision.Contains(GameReferenceManager.instance.playerTeamHandling))//player in vision and is enemy.
                     {
                         chosenCharacter = GameReferenceManager.instance.playerTeamHandling;//prioritize fighting player
@@ -269,7 +269,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 }
                 else if (navMeshAgent.remainingDistance == 0)
                 {
-                    Debug.Log("Couldn't find shit here. going back to commanding or obiding");
+                    //Debug.Log("Couldn't find shit here. going back to commanding or obiding");
                     soldierState = SoldierState.CommandOrObide;
                 }
                 break;
@@ -358,7 +358,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
             bool threatIsInVisionCone = angleToThreat <= fieldOfViewAngle;
             if (!threatIsInVisionCone)
                 continue;
-            //Debug.Log(possibleThreats[i].name + " in cone");
+            ////Debug.Log(possibleThreats[i].name + " in cone");
             bool lineToThreatUninterrupted = Physics.Raycast(transform.position, directionToThreat, out RaycastHit visionHit, viewDistance);
             if (!lineToThreatUninterrupted)
                 continue;
@@ -423,7 +423,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
     {
         if (soldierState == SoldierState.CommandOrObide)
         {
-            Debug.Log("SOMEONE IS SHOOTING AT ME! i'm running for cover away from my last position");
+            //Debug.Log("SOMEONE IS SHOOTING AT ME! i'm running for cover away from my last position");
             navMeshAgent.SetDestination(FindCoverPosition(transform.position));
             soldierState = SoldierState.RunForCover;//find a spot?
         }
