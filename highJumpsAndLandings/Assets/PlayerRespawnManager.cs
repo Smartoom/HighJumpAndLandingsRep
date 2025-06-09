@@ -25,13 +25,16 @@ public class PlayerRespawnManager : MonoBehaviour
     {
         if (wantsToRespawn)
         {
-            CanvasReferenceManager.instance.respawnTimerText.text = ((int)timer).ToString();
+            CanvasReferenceManager.instance.respawnTimerText.text = ((int)(timeToRespawn - timer + 1)).ToString();
             timer += Time.deltaTime;
             if (timer >= timeToRespawn)
             {
                 timer = 0;
                 wantsToRespawn = false;
                 Instantiate(playerContainerPrefab, Vector3.zero, Quaternion.identity).GetComponentInChildren<PlayerTeamHandling>().SetTeamInt(playerTeamWhenDead);
+
+                CanvasReferenceManager.instance.gameHUDScreen.SetActive(true);
+                CanvasReferenceManager.instance.gameOverScreen.SetActive(false);
 
                 respawnCamera.SetActive(false);
                 if (playerTeamWhenDead < 0)

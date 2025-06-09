@@ -116,21 +116,20 @@ public class GenericSoldierDudeEnemyScript : Enemy
                             }
                         }
                         navMeshAgent.SetDestination(foundDestination);
+                        foreach (TeamedCharacter allyCharacter in allies)
+                        {
+                            if (allyCharacter is PlayerTeamHandling)
+                                continue;
+                            //allies excluding player
+                            GenericSoldierDudeEnemyScript ally = (GenericSoldierDudeEnemyScript)allyCharacter;
+                            //assuming only one commander exists
+                            //Debug.Log("GAAH! only one commander is supposed to exist!");
+                            //tell ally where to go
+                            ally.SetCommandGivenDestination(foundDestination + new Vector3(Random.Range(-1, 1), 0, Random.Range(-1, 1)));// #idk what to do w this bruh. gotta design this stuff.
+                        }
                     }
                     //maybe hvae this on an interval
 
-                    foreach (TeamedCharacter allyCharacter in allies)
-                    {
-                        if (allyCharacter is PlayerTeamHandling)
-                            continue;
-                        //allies excluding player
-                        GenericSoldierDudeEnemyScript ally = (GenericSoldierDudeEnemyScript)allyCharacter;
-                        //assuming only one commander exists
-                        if (ally.isCommander)
-                            //Debug.Log("GAAH! only one commander is supposed to exist!");
-                        //tell ally where to go
-                        ally.SetCommandGivenDestination(transform.position);// #idk what to do w this bruh. gotta design this stuff.
-                    }
                 }
                 if (threatsInVision.Count > 0)
                 {
@@ -391,8 +390,8 @@ public class GenericSoldierDudeEnemyScript : Enemy
                 if (soldier == this)
                     continue;
 
-                if (SameTeamAs(soldier.teamInt) && soldier is GenericSoldierDudeEnemyScript)
-                    ((GenericSoldierDudeEnemyScript)soldier).isCommander = true;
+                if (SameTeamAs(soldier.teamInt) && soldier is GenericSoldierDudeEnemyScript script)
+                    script.SetAsCommanderContextMenu();
             }
         }
 
@@ -428,5 +427,16 @@ public class GenericSoldierDudeEnemyScript : Enemy
             soldierState = SoldierState.RunForCover;//find a spot?
         }
         base.TakeDamage(hitColider, damage);
+    }
+
+    public void SetTeamInt(int newTeamInt)
+    {
+        teamInt = newTeamInt;
+
+        armEmblemWrap.material = TeamManager.instance.teams[teamInt].identificationAccesoryMaterial;
+    }
+    public bool isSoldierCommander()
+    {
+        return isCommander;
     }
 }

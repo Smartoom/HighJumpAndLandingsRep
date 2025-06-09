@@ -24,6 +24,11 @@ public class CanvasReferenceManager : MonoBehaviour
     public Transform yellowTeamFill;
     public Transform purpleTeamFill;
     public Transform greenTeamFill;
+    public TMP_Text redTeamNumberText;
+    public TMP_Text blueTeamNumberText;
+    public TMP_Text yellowTeamNumberText;
+    public TMP_Text purpleTeamNumberText;
+    public TMP_Text greenTeamNumberText;
     [Header("CROSSHAIR")]
     // CROSSHAIRS
     public Transform plusCrosshair;
