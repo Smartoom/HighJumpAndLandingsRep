@@ -33,6 +33,10 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private Transform Orientation;
 
+    private void Start()
+    {
+        MiniMapCamera.instance.SetFollowTarget(Orientation);
+    }
     private void Update()
     {
         timeSinceJumpPressed += Time.deltaTime;

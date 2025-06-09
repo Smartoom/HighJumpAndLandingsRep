@@ -53,6 +53,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
     [SerializeField] private Animator animator;
     [SerializeField] private MeshRenderer armEmblemWrap;
     [SerializeField] private NavMeshAgent navMeshAgent;
+    [SerializeField] private SpriteRenderer miniMapIcon;
 
     private void Start()
     {
@@ -63,6 +64,7 @@ public class GenericSoldierDudeEnemyScript : Enemy
         allies = new();
         threatsInVision = new();
 
+        miniMapIcon.sprite = TeamManager.instance.teams[teamInt].teamIcon;
         armEmblemWrap.material = TeamManager.instance.teams[teamInt].identificationAccesoryMaterial;
     }
     private bool SameTeamAs(int otherTeamInt) => otherTeamInt == teamInt;
