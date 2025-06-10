@@ -1381,7 +1381,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isRiggingEnabled: 1
   isPaintingEnabled: 1
-  currentEditor: Tripolygon.UModelerX.Editor.Modelings.ModelingEditor, Tripolygon.UModelerX.Editor,
+  currentEditor: Tripolygon.UModelerX.Editor.Painting3D.Painting3DEditor, Tripolygon.UModelerX.Editor,
     Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   materials:
   - {fileID: 2100000, guid: 880fb0bc04d7ea746b356f1615abbcce, type: 2}
