@@ -7,7 +7,11 @@ public class CanvasReferenceManager : MonoBehaviour
     public static CanvasReferenceManager instance;
     [Header("SCREEN SWITCHING")]
     public GameObject gameHUDScreen;
+    public GameObject deathScreen;
     public GameObject gameOverScreen;
+    [Header("GAME OVER")]
+    public TMP_Text gameOverScoreText;
+    public TMP_Text whichTeamDiedText;
     [Header("HEALTH")]
     public TMP_Text healthText;
     public Image healthFill;

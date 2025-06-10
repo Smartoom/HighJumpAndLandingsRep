@@ -37,7 +37,7 @@ public class PlayerRespawnManager : MonoBehaviour
                 GameReferenceManager.instance.playerTeamHandling.SetTeamInt(playerTeamWhenDead);
 
                 CanvasReferenceManager.instance.gameHUDScreen.SetActive(true);
-                CanvasReferenceManager.instance.gameOverScreen.SetActive(false);
+                CanvasReferenceManager.instance.deathScreen.SetActive(false);
                 respawnCamera.SetActive(false);
 
                 if (playerTeamWhenDead < 0)
@@ -49,7 +49,7 @@ public class PlayerRespawnManager : MonoBehaviour
     public void StartRespawnTimer(int playerTeamInt)
     {
         CanvasReferenceManager.instance.gameHUDScreen.SetActive(false);
-        CanvasReferenceManager.instance.gameOverScreen.SetActive(true);
+        CanvasReferenceManager.instance.deathScreen.SetActive(true);
         MiniMapCamera.instance.SetFollowTarget(null);
         playerTeamWhenDead = playerTeamInt;
         wantsToRespawn = true;

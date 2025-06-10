@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SoldierSpawnerAndManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class SoldierSpawnerAndManager : MonoBehaviour
     [SerializeField] private float soldierInTeamRandomDistance = 3f;
     int[] teamSoldierCount;
     float[] teamRespawnTimer;
+    private float timeSinceStartOfGameScene;
 
     private void Start()
     {
@@ -29,8 +31,17 @@ public class SoldierSpawnerAndManager : MonoBehaviour
             }
         }
     }
+    private bool gameOver = false;
     private void Update()
     {
+        if(gameOver && Input.GetKeyDown(KeyCode.Space))
+        {
+            Time.timeScale = 1;
+            gameOver = false;//bruh
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+        timeSinceStartOfGameScene += Time.deltaTime;
+
         IdentifySoldierCount();
         CanvasReferenceManager.instance.redTeamFill.localScale = new Vector3((teamSoldierCount[0]) / (float)maxSoldierCount, 1, 1);
         CanvasReferenceManager.instance.redTeamNumberText.text = teamSoldierCount[0].ToString();
@@ -46,7 +57,15 @@ public class SoldierSpawnerAndManager : MonoBehaviour
         {
             if (teamSoldierCount[i] == 0)
             {
-                //GAME OVER. or not
+                //GAME OVER
+                if (!gameOver)
+                {
+                    gameOver = true;
+                    CanvasReferenceManager.instance.gameOverScreen.SetActive(true);
+                    CanvasReferenceManager.instance.gameOverScoreText.text = "you have lasted for " + (int)timeSinceStartOfGameScene + " seconds";
+                    CanvasReferenceManager.instance.whichTeamDiedText.text = TeamManager.instance.teams[i].teamName +" Team went extinct.";
+                    Time.timeScale = 0;
+                }
             }
             else if (teamSoldierCount[i] < maxSoldierCount)
             {
