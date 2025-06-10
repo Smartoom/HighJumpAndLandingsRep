@@ -45,8 +45,8 @@ public class PlayerHealth : MonoBehaviour
     }
     private void Die()
     {
-        Destroy(transform.parent.gameObject);//assuming the player and the camera are still children of the container.
         PlayerRespawnManager.instance.StartRespawnTimer(GetComponent<PlayerTeamHandling>().teamInt);
+        Destroy(transform.parent.gameObject);//assuming the player and the camera are still children of the container.
     }
 
     private void Update()

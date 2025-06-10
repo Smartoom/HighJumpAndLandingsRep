@@ -4,6 +4,7 @@ public class MiniMapCamera : MonoBehaviour
 {
     public static MiniMapCamera instance;
     [SerializeField] private Camera cam;
+    [SerializeField] private Vector3 offset;
 
 
     private void Awake()
@@ -19,6 +20,8 @@ public class MiniMapCamera : MonoBehaviour
 
     public void SetFollowTarget(Transform newTarget)
     {
+        if (newTarget != null)
+            transform.position = newTarget.position + offset;
         transform.parent = newTarget;
     }
     /// <summary>
